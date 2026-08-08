@@ -1,0 +1,26 @@
+# A fleet that exists only on this machine: eight nodes on loopback.
+#
+# Every node is a real node worker speaking real G9XC over a real socket — the
+# hardware is the only simulated part. Use it to exercise a deployment before
+# any board exists:
+#
+#   ./deploy/start_fleet_local.sh --core /path/to/ram-coffers \
+#       --inventory examples/local_sim_inventory.csv
+#
+# The rows claim to be BC-250s, and they are not: the `host-sim` SKU has 8 GB of
+# 50 GB/s host RAM, which is below the planner's hot-tier bandwidth floor, so a
+# fleet of them cannot be planned at all. Rows here therefore borrow a real SKU
+# so that the planner produces a realistic placement, and every node is then
+# served by an ordinary x86-64 process. **Nothing here is a capability claim.**
+# Plan against examples/fleet_inventory.csv for anything that matters.
+#
+# Ports are advisory; start_fleet_local.sh and tests/ rebind onto free ones.
+unit_id,sku,host,runtime,port,backend,shelf
+sim-001,bc-250,127.0.0.1,salvage-linux,19713,cpu-avx2,s01
+sim-002,bc-250,127.0.0.1,salvage-linux,19714,cpu-avx2,s01
+sim-003,bc-250,127.0.0.1,salvage-linux,19715,cpu-avx2,s01
+sim-004,bc-250,127.0.0.1,salvage-linux,19716,cpu-avx2,s01
+sim-005,bc-250,127.0.0.1,salvage-linux,19717,cpu-avx2,s02
+sim-006,bc-250,127.0.0.1,salvage-linux,19718,cpu-avx2,s02
+sim-007,bc-250,127.0.0.1,salvage-linux,19719,cpu-avx2,s02
+sim-008,bc-250,127.0.0.1,salvage-linux,19720,cpu-avx2,s02

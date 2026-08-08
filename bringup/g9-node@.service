@@ -1,0 +1,56 @@
+# G9XC node worker, one instance per unit: systemctl start g9-node@ps5-001
+#
+# Applies to PS5 nodes running Linux and to the salvage boards. It does NOT
+# apply to an Xbox in Dev Mode — there is no systemd inside that sandbox; the
+# console's own lifecycle starts the worker there.
+#
+#   install -m 0644 bringup/g9-node@.service /etc/systemd/system/
+#   install -m 0644 -D bringup/g9-node.env.example /etc/g9-node/%i.env
+#   systemctl daemon-reload && systemctl enable --now g9-node@%i
+
+[Unit]
+Description=G9XC node worker (%i)
+Documentation=https://github.com/erkinalp/ram-coffers
+After=network-online.target
+Wants=network-online.target
+
+# Restart, but not in a tight loop: a node that cannot load its shards will
+# fail the same way every time, and hammering it hides the reason in the log.
+StartLimitBurst=5
+StartLimitIntervalSec=300
+
+[Service]
+Type=simple
+# PYTHONPATH, not WorkingDirectory: systemd does not expand variables in
+# WorkingDirectory, and install_node.sh writes the core's path in literally.
+EnvironmentFile=/etc/g9-node/%i.env
+ExecStart=/usr/bin/env python3 -m gen9_cluster serve ${G9_CONFIG} %i \
+    --host ${G9_HOST} --port ${G9_PORT}
+
+Restart=on-failure
+RestartSec=15
+
+# The worker holds several GiB of weights and dies to the OOM killer if it is
+# nudged; make it a less attractive target than everything else on the box.
+OOMScoreAdjust=-500
+
+# It talks to a GPU (Vulkan/ROCm) and to the network, and touches nothing else.
+# Weights arrive over G9XC (LOAD_SHARD), so the filesystem stays read-only
+# except for the NVMe coffer tier, which gets an explicit ReadWritePaths.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ProtectControlGroups=yes
+ProtectKernelModules=yes
+RestrictSUIDSGID=yes
+DeviceAllow=/dev/dri rw
+DeviceAllow=/dev/kfd rw
+ReadWritePaths=-/var/lib/g9-node
+
+# Console hardware is thermally marginal under a continuous kernel; leaving a
+# little CPU for the rest of the system keeps ssh usable when a node melts down.
+Nice=5
+
+[Install]
+WantedBy=multi-user.target

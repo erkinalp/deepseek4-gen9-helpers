@@ -1,0 +1,51 @@
+# Fleet inventory: one row per unit. This is the single source of truth for the
+# gen9-cluster fleet JSON, Wake-on-LAN lists, and power maps.
+#
+# Required columns:
+#   unit_id      stable name for this board (goes on its tray in marker: out of
+#                their stock cases these boards are indistinguishable)
+#   sku          ps5 | ps5-slim | ps5-pro | xbox-series-x | xbox-series-s
+#                | amd-4700s | amd-4800s | bc-250 | host-sim
+#   host         IP/hostname the shelf coordinator can reach
+#
+# Optional, placement and transport:
+#   runtime      ps5-linux | ps5-hen | xbox-devmode | xbox-gdk | salvage-linux
+#                | host-sim   (defaults per sku)
+#   port         G9XC port the node worker listens on (default 9713)
+#   backend      cpu-avx2 | vulkan | rocm | d3d12   (blank = let the node pick)
+#   measured_gemv_gflops   from `g9-probe`. Required in practice for any rocm
+#                node: gfx1013 library coverage is too uneven to predict.
+#   devmode_app  true if this Xbox runs as an *app* (~1 GB) not a game (~5 GB)
+#   cu_enabled_override    CUs this unit really has, when the SKU default lies
+#
+# Optional, per-unit damage. This is why the file exists: nothing below can be
+# inferred from the model name, and the planner reads only the effective
+# numbers that result.
+#   cu_disabled            additional compute units lost on this unit
+#   cpu_cores_disabled     cores lost
+#   cpu_ghz_cap            sustained CPU clock ceiling, GHz
+#   gpu_ghz_cap            sustained GPU clock ceiling, GHz
+#   memory_budget_bytes    hard ceiling (a dev-mode sandbox, a cgroup limit)
+#   tier_losses            tier=bytes;tier=bytes  (e.g. gddr6=2147483648)
+#   tier_bandwidth_scale   tier=fraction (0,1], for a depopulated channel that
+#                          costs bandwidth without costing capacity
+#   reasons                pipe-separated audit trail, quoted if it has commas
+#
+# Optional, physical:
+#   mac, shelf, rack, slot
+#   pdu, pdu_outlet   the power controller and channel that can switch this
+#                board. In the rack build (rack/RACK_HARDWARE_SPEC.md) boards
+#                run bare on a common fused 12 V bus, so this names the bus
+#                controller and drop rather than a mains outlet; power/ only
+#                ever passes the pair to your own command template.
+unit_id,sku,host,runtime,port,backend,measured_gemv_gflops,devmode_app,cu_enabled_override,cu_disabled,cpu_cores_disabled,cpu_ghz_cap,gpu_ghz_cap,memory_budget_bytes,tier_losses,tier_bandwidth_scale,reasons,mac,shelf,rack,slot,pdu,pdu_outlet
+ps5-001,ps5,10.0.0.11,ps5-linux,9713,vulkan,,,,,,,,,,,,00:1f:a7:00:01:01,s01,r01,c1-s1,pdu-r01-a,1
+ps5-002,ps5,10.0.0.12,ps5-linux,9713,vulkan,,,,,,,1.8,,,,fan replaced|clocked down to hold 70C,00:1f:a7:00:01:02,s01,r01,c1-s2,pdu-r01-a,2
+ps5-003,ps5,10.0.0.13,ps5-linux,9713,vulkan,,,,4,,,,,gddr6=2147483648,,dead GDDR6 package on memtest|4 CUs lost with it,00:1f:a7:00:01:03,s01,r01,c1-s3,pdu-r01-a,3
+ps5-pro-001,ps5-pro,10.0.0.14,ps5-linux,9713,cpu-avx2,,,,,,,,,,,no known Linux boot path for Pro yet; CPU-only placeholder,00:1f:a7:00:01:04,s01,r01,c1-s4,pdu-r01-a,4
+xsx-001,xbox-series-x,10.0.0.21,xbox-devmode,9713,cpu-avx2,,,,,,,,,,,dev mode game partition (~5 GB),00:1f:a7:00:02:01,s02,r01,c2-s1,pdu-r01-b,1
+xss-001,xbox-series-s,10.0.0.22,xbox-devmode,9713,cpu-avx2,,true,,,,,,,,,dev mode app partition (~1 GB),00:1f:a7:00:02:02,s02,r01,c2-s2,pdu-r01-b,2
+bc250-001,bc-250,10.0.0.31,salvage-linux,9713,vulkan,940.0,,40,,,,,,,,40-CU unlock kernel patch applied|ttm.pages_limit raised to 16 GiB,00:1f:a7:00:03:01,s03,r02,c1-s1,pdu-r02-a,1
+bc250-002,bc-250,10.0.0.32,salvage-linux,9713,vulkan,610.0,,24,,,,,,,,stock firmware CU mask (24 of 40),00:1f:a7:00:03:02,s03,r02,c1-s2,pdu-r02-a,2
+kit-4700s-001,amd-4700s,10.0.0.41,salvage-linux,9713,cpu-avx2,,,,,,,,,,,GPU fused off by AMD; CPU-only by design,00:1f:a7:00:04:01,s03,r02,c1-s3,pdu-r02-a,3
+kit-4800s-001,amd-4800s,10.0.0.42,salvage-linux,9713,cpu-avx2,,,,,2,,,,,gddr6=0.75,two cores fused off|one memory channel depopulated,00:1f:a7:00:04:02,s03,r02,c1-s4,pdu-r02-a,4

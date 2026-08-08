@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+
+# Real inventories name real addresses and real hardware. Keep yours out of
+# git unless you mean it; examples/ has the schema.
+/fleet.csv
+/fleet.json
+/deployment.json
