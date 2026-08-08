@@ -40,7 +40,9 @@ not much of it.
   (app), and no GPU compute path exists today: `d3d12` is a name with no kernel
   behind it.
 * **AMD 4700S / 4800S** — console silicon on a desktop board with the GPU fused
-  off. CPU-only, GDDR6 as system memory.
+  off (PS5 Ariel and Series X respectively; different harvests, not revisions).
+  CPU-only, GDDR6 as system memory at a measured 92.9 GB/s. A card in the slot
+  does not help: both boards are x4 electrically.
 * **BC-250** — ex-mining blade, PS5-derived GFX1013 with 16 GB unified GDDR6.
   The best-documented GPU path here, and the only family designed for a rack
   from the start.

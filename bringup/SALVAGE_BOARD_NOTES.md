@@ -16,11 +16,27 @@ Console SoCs with the GPU fused off, sold as a board with 16 GB of GDDR6 as
 *system* memory. In this project they are CPU nodes with an unusually fast
 memory subsystem for a CPU — which is exactly what expert streaming wants.
 
+They are not two revisions of one product, and the inventory must not treat them
+as interchangeable: the **4700S is a PS5 "Ariel" die** on a mini-ITX board with
+SATA storage only and a slot that is x16 mechanically but **PCIe 2.0 x4**
+electrically, while the **4800S is an Xbox Series X die** on mATX at 4.0 GHz
+with an M.2 and a **PCIe 4.0 x4** slot.
+
 * `backend=cpu-avx2`. There is no GPU to select; the planner's SKU entry already
   reflects a fused-off GPU, so do not "fix" it with `cu_enabled_override`.
-* GDDR6 as system memory has high bandwidth and high latency. The AVX2 expert
-  kernel is bandwidth-bound and does fine; anything latency-sensitive will not.
+* GDDR6 as system memory has high bandwidth and high latency: 92.9 GB/s copy at
+  145 ns, measured by Tom's Hardware on a retail 4700S. The AVX2 expert kernel
+  is bandwidth-bound and does fine; anything latency-sensitive will not.
 * Record cores lost to binning as `cpu_cores_disabled` with a `reasons` entry.
+* On the 4700S, the cold tier is a SATA SSD. There is no M.2, and the slot may
+  not be spent on a carrier card, so plan for ~0.55 GB/s rather than an NVMe.
+
+**Putting a Radeon in the slot does not make one of these a small PS5.** The
+card can only run experts resident in its own VRAM: pulling them from the
+board's GDDR6 crosses an x4 link at ~2 GB/s (4700S) or ~7.9 GB/s (4800S), where
+a console reads its own memory at 448. The core has no way to express a tier
+whose bandwidth depends on which backend reads it, so there is no SKU for a
+GPU-equipped kit and inventory should not invent one.
 
 ## BC-250
 

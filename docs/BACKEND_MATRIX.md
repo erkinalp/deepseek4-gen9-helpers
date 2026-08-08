@@ -11,7 +11,7 @@ validated on a physical console.
 | `ps5-pro` | `ps5-linux` | `cpu-avx2` | unknown | No known Linux boot path; the SKU exists because the hardware does |
 | `xbox-series-x/s` | `xbox-devmode` | `cpu-avx2` | **none** | No `d3d12` kernel exists; sandbox caps memory at ~5 GB (game) or ~1 GB (app) |
 | `xbox-series-x/s` | `xbox-gdk` | `cpu-avx2` | **none today** | GDK could reach D3D12; the compute kernel is unwritten |
-| `amd-4700s`, `amd-4800s` | `salvage-linux` | `cpu-avx2` | GPU fused off | GDDR6 as system memory: high bandwidth, high latency |
+| `amd-4700s` (PS5 die), `amd-4800s` (Series X die) | `salvage-linux` | `cpu-avx2` | GPU fused off | GDDR6 as system memory: 92.9 GB/s at 145 ns. A card in the slot reaches board memory over PCIe 2.0 x4 / 4.0 x4, so it is not a GPU node |
 | `bc-250` | `salvage-linux` | `vulkan` | RADV on GFX1013 | Best-documented GPU path in the fleet; ROCm userspace coverage is the problem, not the driver |
 | `host-sim` | `host-sim` | `cpu-avx2` | n/a | Loopback simulation |
 
