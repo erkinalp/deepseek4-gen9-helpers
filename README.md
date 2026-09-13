@@ -71,6 +71,9 @@ python3 deploy/check_fleet.py --inventory fleet.csv \
 # 3. generate core-compatible fleet JSON and a plan
 python3 deploy/gen_fleet_config.py --inventory fleet.csv -o fleet.json \
     --plan deployment.json --gen9 ../ram-coffers/gen9-cluster
+# model and coffer policy are planner options: --model deepseek-v4.1-flash
+# places V4.1's Engram tables on NVMe; --no-ssd spreads the row stores across
+# fleet RAM instead (one extra network hop per lookup)
 
 # 4. install the worker on a Linux node (PS5 or salvage board)
 sudo ./bringup/install_node.sh --unit-id ps5-001 \
