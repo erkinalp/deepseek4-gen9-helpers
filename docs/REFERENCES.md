@@ -57,5 +57,14 @@ and should be treated as untested.
   protocol; `gen9-cluster/docs/GEN9_SPLITTING.md` the placement arithmetic;
   `gen9-cluster/docs/REFERENCES.md` the model-side citations (DeepSeek, MLA,
   FP8, and the consumer-hardware inference work this design borrows from).
+* DeepSeek-V4.1-Flash model card — the checkpoint `--model
+  deepseek-v4.1-flash` resolves to —
+  <https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash>
+* Engram memory layer — <https://github.com/deepseek-ai/Engram>
+  The conditional-memory pattern behind the `engram-*` io pieces a V4.1 plan
+  emits. Deployments treat the tables as external IO; only `--no-ssd` puts the
+  row stores back in fleet RAM, sharded like read-mostly experts.
+* DeepSelect — <https://github.com/deepseek-ai/DeepSelect>
+  The top-k selection design the V4.1 indexer mirrors.
 * `kimi-k3-ps3-helpers` — the previous generation of this split, and the
   structural model for this repository.

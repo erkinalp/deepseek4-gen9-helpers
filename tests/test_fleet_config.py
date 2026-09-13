@@ -167,6 +167,44 @@ class TestCoreAcceptsOurOutput(unittest.TestCase):
         self.assertGreater(len(plan.units), 0)
         self.assertGreater(plan.tokens_per_second, 0.0)
 
+    def write_ps5_inventory(self, count):
+        """A CSV of ``count`` nominal PS5s — enough to hold V4.1-Flash."""
+        path = os.path.join(tempfile.mkdtemp(), "ps5s.csv")
+        with open(path, "w") as handle:
+            handle.write("unit_id,sku,host,runtime\n")
+            for i in range(count):
+                handle.write(f"ps5-{i:03d},ps5,10.0.0.{10 + i},ps5-linux\n")
+        return path
+
+    def test_v41_plan_uses_the_no_ssd_flag(self):
+        """V4.1's Engram tables are the first thing a deployment has a reason
+        to forbid from NVMe: --no-ssd must reach plan_split, or the generated
+        config quietly describes drives the operator said not to use."""
+        inventory = self.write_ps5_inventory(60)
+        with_ssd = os.path.join(tempfile.mkdtemp(), "deployment.json")
+        without = os.path.join(tempfile.mkdtemp(), "deployment.json")
+        fleet_out = os.path.join(tempfile.mkdtemp(), "fleet.json")
+
+        for extra, expect in (([], "engram-1@ssd"),
+                              (["--no-ssd"], "engram-1-rows")):
+            target = without if extra else with_ssd
+            result = subprocess.run(
+                [sys.executable, GEN_FLEET, "--inventory", inventory,
+                 "-o", fleet_out, "--plan", target, "--gen9", CORE,
+                 "--model", "deepseek-v4.1-flash", *extra],
+                capture_output=True, text=True)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            with open(target) as handle:
+                nodes = json.load(handle)["nodes"]
+            pieces = {piece for node in nodes.values()
+                      for piece in node["io_pieces"]}
+            self.assertIn(expect, pieces)
+            if extra:
+                self.assertFalse(any(p.endswith("@ssd") for p in pieces))
+                held = sum(node.get("engram_ram_bytes", 0)
+                           for node in nodes.values())
+                self.assertGreater(held, 0)
+
 
 @unittest.skipIf(CORE is None, "no gen9-cluster checkout ($GEN9_CLUSTER)")
 class TestCheckFleet(unittest.TestCase):

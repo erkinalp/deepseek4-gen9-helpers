@@ -79,6 +79,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--model", default="deepseek-v4-pro")
     parser.add_argument("--context", type=int, default=8192)
     parser.add_argument("--shelf-size", type=int, default=22)
+    parser.add_argument("--no-ssd", action="store_true",
+                        help="forbid NVMe placement: experts and Engram row "
+                             "stores are spread across fleet RAM instead")
     args = parser.parse_args(argv)
 
     units = _filter(load_inventory(args.inventory), args.shelf, args.sku)
@@ -107,7 +110,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         plan = plan_split(profile, fleet_units(fleet),
                           context_tokens=args.context,
-                          shelf_size=args.shelf_size)
+                          shelf_size=args.shelf_size,
+                          allow_ssd_tier=not args.no_ssd)
     except PlanningError as exc:
         print(f"cannot place {args.model} on this fleet: {exc}",
               file=sys.stderr)
